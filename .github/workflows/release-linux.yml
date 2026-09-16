@@ -1,0 +1,66 @@
+name: Release Linux
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+concurrency:
+  group: release-linux-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  linux-x64:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Cache build data
+        uses: actions/cache@v4
+        with:
+          path: |
+            build_tools/tools/linux/qt_build
+            build_tools/tools/linux/sysroot
+            core/Common/3dParty
+            build_tools/out
+            sdkjs/build/node_modules
+            web-apps/build/node_modules
+            web-apps/build/sprites/node_modules
+            desktop-apps/common/loginpage/build/node_modules
+            ~/.npm
+          key: ${{ runner.os }}-release-${{ hashFiles('.gitmodules', 'sdkjs/build/npm-shrinkwrap.json', 'web-apps/build/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-release-
+
+      - name: Build
+        run: bash ci/linux/build.sh
+
+      - name: Package
+        run: |
+          cd build_tools/out/linux_64/onlyoffice
+          tar -czf "${GITHUB_WORKSPACE}/desktopeditors-linux-x64.tar.gz" desktopeditors
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktopeditors-linux-x64
+          path: desktopeditors-linux-x64.tar.gz
+          if-no-files-found: error
+
+      - name: Publish release assets
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1 || gh release create "${GITHUB_REF_NAME}" --generate-notes
+          gh release upload "${GITHUB_REF_NAME}" desktopeditors-linux-x64.tar.gz --clobber

@@ -1,18 +1,21 @@
 [submodule "desktop-apps"]
 	path = desktop-apps
-	url = https://github.com/ONLYOFFICE/desktop-apps.git
+	url = https://github.com/Typsastra-Office/desktop-apps.git
 [submodule "desktop-sdk"]
 	path = desktop-sdk
-	url = https://github.com/ONLYOFFICE/desktop-sdk.git
+	url = https://github.com/Typsastra-Office/desktop-sdk.git
 [submodule "core"]
 	path = core
-	url = https://github.com/ONLYOFFICE/core.git
+	url = https://github.com/Typsastra-Office/core.git
 [submodule "sdkjs"]
 	path = sdkjs
-	url = https://github.com/ONLYOFFICE/sdkjs.git
+	url = https://github.com/Typsastra-Office/sdkjs.git
 [submodule "dictionaries"]
 	path = dictionaries
-	url = https://github.com/ONLYOFFICE/dictionaries.git
+	url = https://github.com/Typsastra-Office/dictionaries.git
 [submodule "web-apps"]
 	path = web-apps
-	url = https://github.com/ONLYOFFICE/web-apps-pro.git
+	url = https://github.com/Typsastra-Office/web-apps.git
+[submodule "build_tools"]
+	path = build_tools
+	url = https://github.com/Typsastra-Office/build_tools.git
