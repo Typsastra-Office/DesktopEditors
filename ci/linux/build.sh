@@ -32,8 +32,8 @@ sudo apt-get install -y python3 python3-pip python-is-python3
 cd "${BUILD_TOOLS}/tools/linux"
 python3 ./deps.py
 python3 ./qt_binary_fetch.py amd64
-if [ ! -d ./sysroot/ubuntu16-amd64-sysroot ]; then
-  (cd ./sysroot && python3 ./fetch.py amd64)
+if [ ! -d ./sysroot/ubuntu16-amd64-sysroot ] || [ ! -d ./sysroot/ubuntu16-arm64-sysroot ]; then
+  (cd ./sysroot && python3 ./fetch.py all)
 fi
 
 # Configure and build. update=0 - use the checkouts provided by the workflow,
