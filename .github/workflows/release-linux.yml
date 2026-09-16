@@ -38,9 +38,9 @@ jobs:
             web-apps/build/sprites/node_modules
             desktop-apps/common/loginpage/build/node_modules
             ~/.npm
-          key: ${{ runner.os }}-release-v2-${{ hashFiles('.gitmodules', 'sdkjs/build/npm-shrinkwrap.json', 'web-apps/build/package-lock.json') }}
+          key: ${{ runner.os }}-release-v3-${{ hashFiles('.gitmodules', 'sdkjs/build/npm-shrinkwrap.json', 'web-apps/build/package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}-release-v2-
+            ${{ runner.os }}-release-v3-
 
       - name: Build
         run: bash ci/linux/build.sh
