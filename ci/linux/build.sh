@@ -45,5 +45,7 @@ python3 ./configure.py \
   --module desktop \
   --sysroot 1 \
   --qt-dir "${BUILD_TOOLS}/tools/linux/qt_build/Qt-5.9.9" \
+  --branding typsastra \
+  --branding-name typsastra \
   --update 0
 python3 ./make.py
