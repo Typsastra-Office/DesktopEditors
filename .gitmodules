@@ -19,3 +19,6 @@
 [submodule "build_tools"]
 	path = build_tools
 	url = https://github.com/Typsastra-Office/build_tools.git
+[submodule "typsastra"]
+	path = typsastra
+	url = https://github.com/Typsastra-Office/typsastra.git
