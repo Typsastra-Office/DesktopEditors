@@ -1,0 +1,124 @@
+{
+  "version": 2,
+  "title": "DesktopEditors Enhanced Unicode baseline corpus",
+  "default_font": "Arial",
+  "cases": [
+    {
+      "id": "latin-basic",
+      "label": "Basic Latin",
+      "direction": "ltr",
+      "text": "The quick brown fox jumps over the lazy dog while five curious judges record 0123456789 measurements; afterward, they verify punctuation, quotation marks, and ordinary spacing in a complete control sentence.",
+      "purpose": "Control case for ordinary one-code-point glyphs."
+    },
+    {
+      "id": "latin-ligatures",
+      "label": "Latin ligature candidates",
+      "direction": "ltr",
+      "text": "The office officials efficiently filed difficult affine profiles, reaffirming that final flags, shuffled files, and coffee-filled shelves contain fi, ffi, ffl, ff, and fl ligature candidates in natural context.",
+      "purpose": "Exercises several source scalars shaped into shared ligature glyphs."
+    },
+    {
+      "id": "combining-marks",
+      "label": "Combining marks",
+      "direction": "ltr",
+      "text": "Å quiet observer compared élan, piñata, and ậ layered vowel with Ż while multiple above-and-below marks remained attached to their intended bases throughout the sentence.",
+      "purpose": "Exercises multiple positioned glyphs and marks for one logical sequence."
+    },
+    {
+      "id": "normalization-distinction",
+      "label": "Distinct authored normalization forms",
+      "direction": "ltr",
+      "text": "The editor must preserve authored normalization exactly: composed Å, é, and ñ appear beside decomposed Å, é, and ñ; although each pair may look identical, their source scalar sequences remain deliberately distinct.",
+      "purpose": "Requires exact authored Unicode without normalization."
+    },
+    {
+      "id": "whitespace-semantics",
+      "label": "Whitespace semantics",
+      "direction": "ltr",
+      "prefix": "A copy-and-paste audit compares visually similar separators in context: ",
+      "code_points": [
+        "0073", "0070", "0061", "0063", "003A", "0020", "0041", "0020", "0042",
+        "003B", "0020", "006E", "0062", "0073", "0070", "003A", "0020", "0041", "00A0", "0042",
+        "003B", "0020", "0074", "0068", "0069", "006E", "003A", "0020", "0041", "2009", "0042",
+        "003B", "0020", "006E", "0061", "0072", "0072", "006F", "0077", "002D", "006E", "0062", "0073", "0070", "003A", "0020", "0041", "202F", "0042",
+        "003B", "0020", "0065", "006D", "003A", "0020", "0041", "2003", "0042"
+      ],
+      "suffix": ", and every separator must retain its exact Unicode identity even when the rendered gaps appear nearly equal.",
+      "purpose": "Checks distinct Unicode sequences that may share visual spacing."
+    },
+    {
+      "id": "variation-selectors",
+      "label": "Variation selectors",
+      "direction": "ltr",
+      "prefix": "A publishing workflow intentionally requests two presentations of the same base character: ",
+      "code_points": ["0074", "0065", "0078", "0074", "003A", "0020", "2764", "FE0E", "003B", "0020", "0065", "006D", "006F", "006A", "0069", "003A", "0020", "2764", "FE0F", "003B", "0020", "0074", "0065", "0078", "0074", "0020", "0061", "0067", "0061", "0069", "006E", "003A", "0020", "2764", "FE0E"],
+      "suffix": ". Selection and extraction must preserve each variation selector, including repeated text-style usage after an emoji-style occurrence.",
+      "purpose": "Preserves variation selectors even when fallback rendering is identical."
+    },
+    {
+      "id": "emoji-zwj",
+      "label": "Supplementary scalars and ZWJ sequence",
+      "direction": "ltr",
+      "prefix": "During the accessibility review, the caption identifies a family sequence without exposing or discarding its joiners: ",
+      "code_points": ["0066", "0061", "006D", "0069", "006C", "0079", "003A", "0020", "1F469", "200D", "1F469", "200D", "1F467", "200D", "1F466", "003B", "0020", "0073", "006D", "0069", "006C", "0065", "003A", "0020", "1F642", "003B", "0020", "0066", "0061", "006D", "0069", "006C", "0079", "0020", "0061", "0067", "0061", "0069", "006E", "003A", "0020", "1F469", "200D", "1F469", "200D", "1F467", "200D", "1F466"],
+      "suffix": ". The repeated supplementary sequence tests stable semantic reuse across a longer sentence.",
+      "purpose": "Exercises supplementary scalars, zero-width joiners, and a multi-scalar visual."
+    },
+    {
+      "id": "arabic",
+      "label": "Arabic",
+      "direction": "rtl",
+      "text": "في صباحٍ هادئٍ، قرأت الباحثةُ مقالةً طويلةً عن اللغة العربية وجمال حروفها، ثم كتبت: لا إله إلا الله؛ وبعد ذلك راجعت الأرقام ١٢٣٤٥ والكلمات المتصلة للتأكد من بقاء التشكيل والترتيب من اليمين إلى اليسار.",
+      "purpose": "Exercises contextual shaping, ligatures, marks, and RTL source order."
+    },
+    {
+      "id": "hebrew",
+      "label": "Hebrew with marks",
+      "direction": "rtl",
+      "text": "בְּבֹקֶר שָׁקֵט קראה החוקרת משפט ארוך בעברית, כתבה שָׁלוֹם עולם, הוסיפה את המספרים 12345, ולבסוף בדקה שהניקוד, סימני הפיסוק וסדר המילים נשמרים בדיוק.",
+      "purpose": "Exercises RTL order and positioned Hebrew combining marks."
+    },
+    {
+      "id": "mixed-bidi",
+      "label": "Mixed LTR and RTL",
+      "direction": "ltr",
+      "text": "The report begins in English, quotes العربية الجميلة with رقم 12345, continues with עברית שָׁלוֹם and version 2.7, then returns to English—without confusing source order, punctuation, or the visual placement of either RTL segment.",
+      "purpose": "Separates authoritative source order from independent visual origins."
+    },
+    {
+      "id": "khmer",
+      "label": "Khmer",
+      "direction": "ltr",
+      "text": "ភាសាខ្មែរជាភាសាដ៏ស្រស់ស្អាត ហើយអ្នកស្រាវជ្រាវបានសរសេរប្រយោគវែងមួយ ដើម្បីពិនិត្យព្យញ្ជនៈ ស្រៈ សញ្ញាបន្ថែម និងក្រុមអក្សរស្មុគស្មាញឱ្យនៅត្រឹមត្រូវ។",
+      "purpose": "Exercises complex multi-component clusters."
+    },
+    {
+      "id": "devanagari",
+      "label": "Devanagari",
+      "direction": "ltr",
+      "text": "सुबह की शांत प्रयोगशाला में शोधकर्ता ने हिन्दी भाषा का एक लम्बा वाक्य लिखा, फिर क्ष, त्र, ज्ञ, श्र और प्र जैसे संयुक्ताक्षरों के साथ मात्राओं तथा पुनः क्रमित चिह्नों की सावधानी से जाँच की।",
+      "purpose": "Exercises reordering marks, conjuncts, and multi-glyph clusters."
+    },
+    {
+      "id": "thai",
+      "label": "Thai",
+      "direction": "ltr",
+      "text": "ภาษาไทยมีความสวยงาม และนักวิจัยกำลังเขียนประโยคที่ยาวขึ้นเพื่อทดสอบสระ วรรณยุกต์ เครื่องหมายวรรคตอน ตัวเลข ๑๒๓๔๕ และการจัดตำแหน่งของอักขระหลายชั้นอย่างละเอียด",
+      "purpose": "Exercises positioned vowels and tone marks."
+    },
+    {
+      "id": "lao",
+      "label": "Lao",
+      "direction": "ltr",
+      "text": "ພາສາລາວມີຄວາມສວຍງາມ ແລະນັກຄົ້ນຄວ້າໄດ້ຂຽນປະໂຫຍກທີ່ຍາວຂຶ້ນ ເພື່ອກວດສອບສະຫຼະ ວັນນະຍຸດ ຕົວເລກ ໑໒໓໔໕ ແລະການຈັດວາງເຄື່ອງໝາຍຫຼາຍຊັ້ນ.",
+      "purpose": "Exercises positioned vowel and tone-mark clusters."
+    },
+    {
+      "id": "cjk",
+      "label": "CJK",
+      "direction": "ltr",
+      "text": "中文测试包含较长的句子、标点符号和数字 12345，用来检查字体回退与复制结果；日本語のテストでは、漢字・ひらがな・カタカナを同じ文章に混在させます。한국어 시험 문장도 한글, 漢字, 숫자 67890을 함께 사용하여 의미와 글리프 매핑을 확인합니다.",
+      "purpose": "Exercises fallback fonts and large source GID namespaces."
+    }
+  ]
+}

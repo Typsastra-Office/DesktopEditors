@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "rendering": {
+    "changed_channel_delta": 8,
+    "maximum_changed_pixel_ratio": 0.01,
+    "maximum_channel_delta": 255,
+    "maximum_rmse": 4.0
+  },
+  "performance": {
+    "maximum_pdf_size_ratio": 2.0,
+    "maximum_export_time_ratio": 2.0,
+    "maximum_peak_memory_ratio": 1.5,
+    "maximum_logical_fonts_per_shard": 1
+  },
+  "limits": {
+    "maximum_nonzero_cids_per_shard": 65535,
+    "maximum_embedded_gids_per_shard": 65535
+  }
+}
