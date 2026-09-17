@@ -1,5 +1,9 @@
 # Enhanced Unicode Implementation Plan
 
+For preview-release safeguards, AI-assisted development disclosure, branding,
+and upstream-contribution policy, see the
+[Typsastra Office Preview Release Policy](TYPSASTRA_PREVIEW_RELEASE_POLICY.md).
+
 ## Purpose
 
 This document defines a phased implementation plan for bringing the PDF Logical Text Units Version 4 architecture to DesktopEditors.
