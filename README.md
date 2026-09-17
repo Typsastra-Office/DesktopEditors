@@ -2,13 +2,13 @@
 [![Platforms Windows | macOS | Linux](https://img.shields.io/badge/Platforms-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg?style=flat)](https://github.com/Typsastra-Office/DesktopEditors/releases)
 [![Release](https://img.shields.io/github/v/tag/Typsastra-Office/DesktopEditors?sort=semver&style=flat&label=Release&color=blue)](https://github.com/Typsastra-Office/DesktopEditors/tags)
 
-<img src="./typsastra/assets/typsastra-wordmark.png" alt="Typsastra Office" width="360">
+<img src="./screenshots/typsastra-wordmark.png" alt="Typsastra Office" width="360">
 
 ## Welcome to the Typsastra Office repo!
 
 **Typsastra Office** is a free office suite that combines text, spreadsheet, presentation, and PDF editors & Diagram Viewer. The application allows creating, viewing and editing documents stored on your Windows/Linux PC or Mac without an Internet connection. It is fully compatible with Office Open XML formats: .docx, .xlsx, .pptx.
 
-<img src="./typsastra/assets/typsastra-office-preview.png" alt="Typsastra Office Desktop Editors">
+<img src="./screenshots/typsastra-office-preview.png" alt="Typsastra Office Desktop Editors">
 
 > Typsastra Office is a modified distribution of [ONLYOFFICE Desktop Editors](https://github.com/ONLYOFFICE/DesktopEditors).
 > See [License](#license-) and [NOTICE](NOTICE) for the original copyright and attribution.
