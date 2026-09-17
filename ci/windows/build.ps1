@@ -39,6 +39,12 @@ Write-Host "QtDir   = $QtDir"
 Write-Host "VsPath  = $VsPath"
 Write-Host "Version = $Version.$Build"
 
+# Always use the real interpreter path: `python` may resolve to a launcher
+# that returns without waiting for the actual process.
+$pythonExe = "$env:pythonLocation\python.exe"
+if (-not (Test-Path $pythonExe)) { $pythonExe = (Get-Command python).Source }
+Write-Host "Python  = $pythonExe"
+
 # Inno Setup + unofficial translations (needed by the branded installer)
 $innoCandidates = @("C:\Program Files (x86)\Inno Setup 6\ISCC.exe", "$env:LOCALAPPDATA\Programs\Inno Setup 6\ISCC.exe")
 if (-not ($innoCandidates | Where-Object { Test-Path $_ })) {
@@ -64,7 +70,7 @@ foreach ($f in $official) {
 
 # ---- configure + build ---------------------------------------------------
 Push-Location $buildTools
-python ./configure.py `
+& $pythonExe ./configure.py `
     --branch master `
     --platform win_64 `
     --module desktop `
@@ -73,27 +79,33 @@ python ./configure.py `
     --branding typsastra `
     --branding-name typsastra `
     --update 0
-if ($LASTEXITCODE -ne 0) { throw "configure.py failed" }
+if ($LASTEXITCODE -ne 0) { throw "configure.py failed ($LASTEXITCODE)" }
 
+# import the Visual Studio environment into this process, then run make.py
+# directly so PowerShell waits for the build to actually finish
 $vcvars = "$VsPath\vcvarsall.bat"
-$makeBat = Join-Path $env:TEMP "typsastra-make.bat"
-@(
-    "@echo off",
-    "call `"$vcvars`" x64 -vcvars_ver=14.29",
-    "if errorlevel 1 exit /b %errorlevel%",
-    "python make.py",
-    "exit /b %errorlevel%"
-) | Set-Content -Path $makeBat -Encoding ASCII
-cmd /c $makeBat
+$vsEnv = & cmd.exe /c "call `"$vcvars`" x64 -vcvars_ver=14.29 && set"
+if ($LASTEXITCODE -ne 0) { throw "vcvarsall failed ($LASTEXITCODE)" }
+foreach ($line in $vsEnv) {
+    $i = $line.IndexOf("=")
+    if ($i -gt 0) {
+        [System.Environment]::SetEnvironmentVariable($line.Substring(0, $i), $line.Substring($i + 1))
+    }
+}
+& $pythonExe make.py
 if ($LASTEXITCODE -ne 0) { throw "make.py failed ($LASTEXITCODE)" }
 Pop-Location
 
+$payload = Get-ChildItem -Path "$buildTools\out\win_64\*\DesktopEditors\DesktopEditors.exe" -ErrorAction SilentlyContinue
+if (-not $payload) { throw "Build payload not found under build_tools\out\win_64" }
+Write-Host "Payload = $($payload[0].FullName)"
+
 # ---- package -------------------------------------------------------------
 Push-Location $buildTools
-python ./make_package.py -P windows_x64 -T desktop -V "$Version.$Build" -B "$Build" -R typsastra
+& $pythonExe ./make_package.py -P windows_x64 -T desktop -V "$Version" -B "$Build" -R typsastra
 $pkgExit = $LASTEXITCODE
 Pop-Location
-if ($pkgExit -ne 0) { throw "make_package.py failed" }
+if ($pkgExit -ne 0) { throw "make_package.py failed ($pkgExit)" }
 
 Write-Host "Artifacts:"
 Get-ChildItem "$repoRoot\desktop-apps\package\zip\*.zip", "$repoRoot\desktop-apps\package\inno\*.exe" -ErrorAction SilentlyContinue |
