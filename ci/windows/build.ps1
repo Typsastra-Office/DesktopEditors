@@ -47,17 +47,18 @@ if (-not ($innoCandidates | Where-Object { Test-Path $_ })) {
 $innoPath = Split-Path -Parent (($innoCandidates | Where-Object { Test-Path $_ })[0])
 $env:INNOPATH = $innoPath
 $langDir = "$innoPath\Languages"
+if (-not (Test-Path $langDir)) { New-Item -ItemType Directory -Path $langDir -Force | Out-Null }
 $langBase = "https://raw.githubusercontent.com/jrsoftware/issrc/refs/heads/main/Files/Languages"
 $unofficial = @("Greek.isl","Estonian.isl","Indonesian.isl","Romanian.isl","Vietnamese.isl","Croatian.isl","Latvian.isl","Belarusian.isl","Galician.isl","SerbianLatin.isl","SerbianCyrillic.isl","EnglishBritish.isl","Albanian.isl","Urdu.isl","Sinhala.islu")
 foreach ($f in $unofficial) {
     if (-not (Test-Path "$langDir\$f")) {
-        try { Invoke-WebRequest -Uri "$langBase/Unofficial/$f" -OutFile "$langDir\$f" -UseBasicParsing -TimeoutSec 60 } catch { Write-Warning "translation $f not fetched" }
+        try { Invoke-WebRequest -Uri "$langBase/Unofficial/$f" -OutFile "$langDir\$f" -UseBasicParsing -TimeoutSec 60 } catch { Write-Warning "translation $f not fetched: $_" }
     }
 }
 $official = @("Lithuanian.isl","ChineseSimplified.isl","ChineseTraditional.isl")
 foreach ($f in $official) {
     if (-not (Test-Path "$langDir\$f")) {
-        try { Invoke-WebRequest -Uri "$langBase/$f" -OutFile "$langDir\$f" -UseBasicParsing -TimeoutSec 60 } catch { Write-Warning "translation $f not fetched" }
+        try { Invoke-WebRequest -Uri "$langBase/$f" -OutFile "$langDir\$f" -UseBasicParsing -TimeoutSec 60 } catch { Write-Warning "translation $f not fetched: $_" }
     }
 }
 
@@ -75,8 +76,16 @@ python ./configure.py `
 if ($LASTEXITCODE -ne 0) { throw "configure.py failed" }
 
 $vcvars = "$VsPath\vcvarsall.bat"
-cmd /c "call `"$vcvars`" x64 -vcvars_ver=14.29 && python make.py"
-if ($LASTEXITCODE -ne 0) { throw "make.py failed" }
+$makeBat = Join-Path $env:TEMP "typsastra-make.bat"
+@(
+    "@echo off",
+    "call `"$vcvars`" x64 -vcvars_ver=14.29",
+    "if errorlevel 1 exit /b %errorlevel%",
+    "python make.py",
+    "exit /b %errorlevel%"
+) | Set-Content -Path $makeBat -Encoding ASCII
+cmd /c $makeBat
+if ($LASTEXITCODE -ne 0) { throw "make.py failed ($LASTEXITCODE)" }
 Pop-Location
 
 # ---- package -------------------------------------------------------------
