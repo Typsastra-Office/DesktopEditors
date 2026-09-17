@@ -75,6 +75,8 @@ Push-Location $buildTools
     --platform win_64 `
     --module desktop `
     --qt-dir $QtDir `
+    --vs-version 2019 `
+    --compiler msvc2022 `
     --vs-path $VsPath `
     --branding typsastra `
     --branding-name typsastra `
