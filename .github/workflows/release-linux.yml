@@ -47,7 +47,7 @@ jobs:
 
       - name: Package
         run: |
-          cd build_tools/out/linux_64/onlyoffice
+          cd build_tools/out/linux_64/typsastra
           tar -czf "${GITHUB_WORKSPACE}/desktopeditors-linux-x64.tar.gz" desktopeditors
 
       - name: Upload artifact
