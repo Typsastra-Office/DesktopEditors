@@ -1,0 +1,3 @@
+# Build-time dependencies cloned by build_tools / CI (not tracked as submodules)
+/document-templates/
+/core-fonts/
