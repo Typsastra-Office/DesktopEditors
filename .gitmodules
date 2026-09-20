@@ -22,3 +22,6 @@
 [submodule "typsastra"]
 	path = typsastra
 	url = https://github.com/Typsastra-Office/typsastra.git
+[submodule "plugins-src/khmer-ocr"]
+	path = plugins-src/khmer-ocr
+	url = https://github.com/Typsastra-Office/onlyoffice-khmer-ocr.git
