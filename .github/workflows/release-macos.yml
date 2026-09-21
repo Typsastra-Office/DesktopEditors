@@ -1,0 +1,98 @@
+name: Release macOS
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+concurrency:
+  group: release-macos-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  macos:
+    name: macos-${{ matrix.arch }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Apple Silicon
+          - arch: arm64
+            runner: macos-14
+            platform: darwin_arm64
+            scheme: ONLYOFFICE-arm
+          # Intel (GitHub hosted Intel image; if it is unavailable this job fails
+          # fast and the x86_64 build has to be cross built on macos-14)
+          - arch: x86_64
+            runner: macos-13
+            platform: darwin_x86_64
+            scheme: ONLYOFFICE-x86_64
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 360
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Cache build data
+        uses: actions/cache@v4
+        with:
+          path: |
+            core/Common/3dParty
+            build_tools/out
+            sdkjs/build/node_modules
+            web-apps/build/node_modules
+            web-apps/build/sprites/node_modules
+            desktop-apps/common/loginpage/build/node_modules
+            ~/.npm
+            ~/Library/Caches/Homebrew
+          key: ${{ runner.os }}-${{ matrix.arch }}-release-${{ hashFiles('.gitmodules', 'sdkjs/build/npm-shrinkwrap.json', 'web-apps/build/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.arch }}-release-
+            ${{ runner.os }}-release-
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.10.1'
+          arch: clang_64
+          modules: 'qtmultimedia qtimageformats'
+          cache: true
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Global tools
+        run: npm install -g grunt-cli @yao-pkg/pkg@6.11.0
+
+      - name: Build and package
+        run: bash ci/macos/build.sh ${{ matrix.platform }} ${{ matrix.scheme }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktopeditors-macos-${{ matrix.arch }}
+          path: desktop-apps/package/macos/*.zip
+          if-no-files-found: error
+
+      - name: Publish release assets
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1 || gh release create "${GITHUB_REF_NAME}" --generate-notes
+          gh release upload "${GITHUB_REF_NAME}" desktop-apps/package/macos/*.zip --clobber
