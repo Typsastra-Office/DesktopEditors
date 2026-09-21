@@ -25,10 +25,11 @@ jobs:
             runner: macos-14
             platform: darwin_arm64
             scheme: ONLYOFFICE-arm
-          # Intel (GitHub hosted Intel image; if it is unavailable this job fails
-          # fast and the x86_64 build has to be cross built on macos-14)
+          # Intel: GitHub's hosted Intel image (macos-13) no longer has runners,
+          # so x86_64 is cross built on an Apple Silicon runner (Qt clang_64 is
+          # universal and Rosetta runs the x86_64 build tools).
           - arch: x86_64
-            runner: macos-13
+            runner: macos-14
             platform: darwin_x86_64
             scheme: ONLYOFFICE-x86_64
     runs-on: ${{ matrix.runner }}
@@ -78,6 +79,10 @@ jobs:
 
       - name: Global tools
         run: npm install -g grunt-cli @yao-pkg/pkg@6.11.0
+
+      - name: Rosetta (x86_64 build tools on Apple Silicon)
+        if: matrix.arch == 'x86_64'
+        run: sudo softwareupdate --install-rosetta --agree-to-license || true
 
       - name: Build and package
         run: bash ci/macos/build.sh ${{ matrix.platform }} ${{ matrix.scheme }}
