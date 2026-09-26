@@ -1,6 +1,12 @@
 # Typsastra Office — Typst-IR Agentic DOCX Editing Plan
 
-Status: proposal · Scope: text-only agent authoring and editing of DOCX via Typst
+Status: deferred proposal · Scope: later text-only agent editing via Typst
+
+**Current priority:** finish the Typst → DOCX converter and its deterministic
+fidelity tests first. The active roadmap lives in the separate Typst repository
+at `crates/typst-docx/IMPLEMENTATION_PLAN.md`. Nothing in this agentic plan is a
+prerequisite for running the converter, and existing live sdkjs tools need not
+be expanded while converter fidelity is the focus.
 
 ## Objective
 
@@ -136,33 +142,17 @@ code; generated SVGs belong only in the DOCX package.
 The agent does **not** render or compare pages. PDF/layout-versus-DOCX fidelity
 is a converter development test, not a per-document agent tool call.
 
-## Implementation milestones
+## Later implementation milestones
 
-### Phase 0 — Export coverage and vector fallback
+### Prerequisite — converter qualification (active in the Typst repository)
 
-- Establish the complex Typst benchmark as a golden source with a PDF/layout
-  reference and a DOCX structural inventory.
-- Use `html.frame` around the authored CeTZ expression to expose its evaluated
-  frame; make `typst-docx` preserve that frame as export-time SVG media without
-  replacing the CeTZ code. Preserve captions and sizing.
-- Report unsupported columns/floats and dropped source content explicitly.
+Meet the content-coverage, native editability, and measured-geometry gates in
+`crates/typst-docx/IMPLEMENTATION_PLAN.md` before starting work below. Build-time
+comparison with the Typst PDF/layout reference may use the **separate** sdkjs
+DOCX layout IR; it is not part of `typst-docx`'s internal representation or a
+per-request agent workflow.
 
-Acceptance: the CeTZ figures produce three nonempty SVG media items in DOCX;
-their captions remain native text; loss of column text is detected, not hidden.
-
-### Phase 1 — Semantic DOCX and measured geometry
-
-- Close the benchmark's missing semantic features, especially column content,
-  column breaks/gutters, and floating image placement.
-- Add source-node → DOCX-object mapping in the exporter, and extend the
-  **separate sdkjs layout IR** with any missing measured geometry.
-- Compare sdkjs DOCX measurements against the Typst layout/PDF reference in a
-  build-test harness with documented tolerances and source-linked errors.
-
-Acceptance: the benchmark's content coverage is complete and geometry tests
-pass under pinned fonts/tool versions; unmeasured geometry is reported as such.
-
-### Phase 2 — DOCX import and textual editing surface
+### Future phase 1 — DOCX import and textual editing surface
 
 - Import supported existing DOCX objects into Typst IR and external assets;
   publish a textual coverage report for unsupported objects.
@@ -172,15 +162,27 @@ pass under pinned fonts/tool versions; unmeasured geometry is reported as such.
 Acceptance: a provider can edit an imported or new document and export a DOCX
 without receiving images or raw OOXML; unsupported import is never silent.
 
-### Phase 3 — Corpus and release qualification
+### Future phase 2 — Existing-document synchronization
 
-- Add golden documents for page boundaries, fonts, tables, columns, equations,
-  drawings and mixed-language text; pin and document tolerances.
-- Measure semantic retention, geometry error, export coverage, deterministic
-  output, compilation time, and agent patch success rate.
+- For Typst-authored DOCX, persist a source/asset bundle and an export mapping.
+  Translate supported subsequent user edits into Typst source changes before
+  regeneration; surface conflicts rather than overwriting user work.
+- For arbitrary existing DOCX, keep unsupported parts explicit and preserve
+  them through a documented import/export strategy. Until import coverage is
+  sufficient, use the existing sdkjs live-edit path for those documents.
 
-Acceptance: regressions fail CI through structural/geometry assertions, and the
-agent receives actionable textual diagnostics rather than visual feedback.
+Acceptance: regenerating DOCX from Typst does not silently discard a user edit,
+and unsupported edits have a clear conflict or native-edit path.
+
+### Future phase 3 — Agent workflow qualification
+
+- Exercise text-only providers against new and imported Typst-backed documents,
+  including user-edit conflicts and unsupported-import diagnostics.
+- Measure patch success, source/DOCX synchronization, tool rounds and how often
+  the agent resolves a textual diagnostic without damaging unrelated content.
+
+Acceptance: the provider receives actionable textual diagnostics, and its edits
+preserve existing user work without needing image-based feedback.
 
 ## Risks and mitigations
 
