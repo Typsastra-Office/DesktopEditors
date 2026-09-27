@@ -9,6 +9,9 @@
 # Developer ID; this script only produces a test/shippable-unsigned artifact.
 set -euo pipefail
 
+# macOS hosted runners have limited memory; bound qmake's per-project parallelism.
+export QMAKE_BUILD_JOBS="${QMAKE_BUILD_JOBS:-2}"
+
 PLATFORM="${1:-darwin_arm64}"
 SCHEME="${2:-ONLYOFFICE-arm}"
 
