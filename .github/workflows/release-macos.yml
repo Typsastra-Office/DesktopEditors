@@ -80,6 +80,14 @@ jobs:
       - name: Global tools
         run: npm install -g grunt-cli @yao-pkg/pkg@6.11.0
 
+      - name: Install compatible CMake
+        run: |
+          python3 -m pip install --disable-pip-version-check cmake==3.31.10
+          CMAKE_BIN_DIR="$(python3 -c 'import sysconfig; print(sysconfig.get_path("scripts"))')"
+          echo "$CMAKE_BIN_DIR" >> "$GITHUB_PATH"
+          export PATH="$CMAKE_BIN_DIR:$PATH"
+          cmake --version | grep -F '3.31.10'
+
       - name: Rosetta (x86_64 build tools on Apple Silicon)
         if: matrix.arch == 'x86_64'
         run: sudo softwareupdate --install-rosetta --agree-to-license || true

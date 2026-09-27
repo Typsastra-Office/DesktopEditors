@@ -27,7 +27,7 @@ fetch_repo core-fonts core-fonts
 
 # System dependencies (same set as build_tools/tools/linux/deps.py).
 sudo apt-get update
-sudo apt-get install -y python3 python3-pip python-is-python3
+sudo apt-get install -y python3 python3-pip python-is-python3 patchelf libsm6 libice6
 
 cd "${BUILD_TOOLS}/tools/linux"
 python3 ./deps.py
@@ -49,3 +49,12 @@ python3 ./configure.py \
   --branding-name typsastra \
   --update 0
 python3 ./make.py
+
+# Confirm the relocated Qt xcb plugin can resolve its bundled Qt libraries and
+# the X11 session libraries required by minimal desktop installations.
+APP_DIR="${REPO_ROOT}/build_tools/out/linux_64/typsastra/desktopeditors"
+if ldd "${APP_DIR}/platforms/libqxcb.so" | grep -q "not found"; then
+  echo "Unresolved runtime dependency in bundled Qt xcb plugin:" >&2
+  ldd "${APP_DIR}/platforms/libqxcb.so" >&2
+  exit 1
+fi

@@ -9,8 +9,25 @@
 # Developer ID; this script only produces a test/shippable-unsigned artifact.
 set -euo pipefail
 
+# macOS hosted runners have limited memory; bound qmake's per-project parallelism.
+export QMAKE_BUILD_JOBS="${QMAKE_BUILD_JOBS:-2}"
+
 PLATFORM="${1:-darwin_arm64}"
 SCHEME="${2:-ONLYOFFICE-arm}"
+
+# The CI matrix names Darwin architectures; build_tools expects its own platform IDs.
+case "${PLATFORM}" in
+  darwin_arm64|mac_arm64)
+    BUILD_TOOLS_PLATFORM="mac_arm64"
+    ;;
+  darwin_x86_64|mac_64)
+    BUILD_TOOLS_PLATFORM="mac_64"
+    ;;
+  *)
+    echo "unsupported macOS architecture: ${PLATFORM}" >&2
+    exit 2
+    ;;
+esac
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
@@ -50,7 +67,7 @@ echo "Qt dir: ${QT_DIR}"
 cd "${BUILD_TOOLS}"
 python3 ./configure.py \
   --branch master \
-  --platform "${PLATFORM}" \
+  --platform "${BUILD_TOOLS_PLATFORM}" \
   --module desktop \
   --qt-dir "${QT_DIR}" \
   --branding typsastra \
@@ -83,6 +100,19 @@ cp -fv "${REPO_ROOT}/desktop-apps/package/common/license/opensource/LICENSE.html
 
 # Build the app bundle (unsigned).
 cd "${MACOS_DIR}"
+CODE_SIGN_WRAPPER_DIR="$(mktemp -d)"
+trap 'rm -rf "${CODE_SIGN_WRAPPER_DIR}"' EXIT
+cat > "${CODE_SIGN_WRAPPER_DIR}/codesign" <<'EOF'
+#!/bin/sh
+if [ "${OO_SKIP_CODESIGN:-0}" = "1" ]; then
+  echo "Skipping explicit code signing for unsigned CI build"
+  exit 0
+fi
+exec /usr/bin/codesign "$@"
+EOF
+chmod +x "${CODE_SIGN_WRAPPER_DIR}/codesign"
+export OO_SKIP_CODESIGN=1
+export PATH="${CODE_SIGN_WRAPPER_DIR}:${PATH}"
 xcodebuild -project ONLYOFFICE.xcodeproj \
   -scheme "${SCHEME}" \
   -configuration Release \
