@@ -1,0 +1,60 @@
+{
+    "name": "AI Doc Bridge",
+    "nameLocale": {
+        "ru": "AI Doc Bridge",
+        "fr": "AI Doc Bridge",
+        "es": "AI Doc Bridge",
+        "de": "AI Doc Bridge"
+    },
+    "guid": "asc.{A1B2C3D4-E5F6-4A7B-8C9D-0E1F2A3B4C5D}",
+
+    "variations": [
+        {
+            "description": "Local AI agent bridge: read the current selection, rewrite selected paragraphs in place, insert generated content, apply document styles, and snapshot a page. Demonstrates that an editor plugin can drive the live document.",
+            "descriptionLocale": {
+                "ru": "Локальный мост AI-агента: читает выделение, переписывает выбранные абзацы на месте, вставляет сгенерированный текст, применяет стили документа и делает снимок страницы.",
+                "fr": "Pont local pour l'agent IA : lit la sélection, réécrit les paragraphes sélectionnés sur place, insère du contenu généré, applique les styles du document et capture une page.",
+                "es": "Puente local del agente de IA: lee la selección, reescribe los párrafos seleccionados en el lugar, inserta contenido generado, aplica estilos y captura una página.",
+                "de": "Lokale KI-Agent-Brücke: liest die Auswahl, schreibt ausgewählte Absätze direkt um, fügt generierten Inhalt ein, wendet Dokumentstile an und erstellt einen Seiten-Snapshot."
+            },
+            "url": "index.html",
+
+            "icons": [
+                {
+                    "style": "light",
+                    "100%": { "normal": "resources/light/icon.png" },
+                    "125%": { "normal": "resources/light/icon.png" },
+                    "150%": { "normal": "resources/light/icon.png" },
+                    "175%": { "normal": "resources/light/icon.png" },
+                    "200%": { "normal": "resources/light/icon.png" }
+                },
+                {
+                    "style": "dark",
+                    "100%": { "normal": "resources/dark/icon.png" },
+                    "125%": { "normal": "resources/dark/icon.png" },
+                    "150%": { "normal": "resources/dark/icon.png" },
+                    "175%": { "normal": "resources/dark/icon.png" },
+                    "200%": { "normal": "resources/dark/icon.png" }
+                }
+            ],
+
+            "isViewer": true,
+            "isDisplayedInViewer": true,
+            "EditorsSupport": ["word", "cell", "slide", "pdf"],
+
+            "type": "panel",
+            "isVisual": true,
+            "isModal": false,
+            "isInsideMode": true,
+
+            "initDataType": "none",
+            "initData": "",
+
+            "isUpdateOleOnResize": false,
+
+            "buttons": [],
+
+            "events": []
+        }
+    ]
+}

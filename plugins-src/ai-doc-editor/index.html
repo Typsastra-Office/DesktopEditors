@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en" style="height:100%;">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <title>AI Doc Bridge</title>
+    <link rel="stylesheet" href="ui.css" />
+    <script type="text/javascript" src="../v1/plugins.js"></script>
+</head>
+<body>
+    <div id="app">
+        <h1>AI Doc Bridge</h1>
+        <p class="hint" id="status">Ready.</p>
+
+        <section>
+            <h2>1. Selection</h2>
+            <button id="btn-read">Read selection</button>
+            <button id="btn-snapshot">Snapshot current page</button>
+            <textarea id="selection" placeholder="Selected text appears here..."></textarea>
+            <div id="snapshot"></div>
+        </section>
+
+        <section>
+            <h2>2. Rewrite selected paragraph (in place)</h2>
+            <textarea id="replacement" placeholder="Type the replacement text (simulating the AI answer)..."></textarea>
+            <button id="btn-rewrite" class="primary">Rewrite selection</button>
+            <button id="btn-insert">Insert at cursor</button>
+        </section>
+
+        <section>
+            <h2>3. Apply style to selection</h2>
+            <button id="btn-bold">Bold</button>
+            <button id="btn-italic">Italic</button>
+            <button id="btn-red">Red</button>
+            <button id="btn-size">16 pt</button>
+        </section>
+    </div>
+
+    <script type="text/javascript" src="code.js"></script>
+</body>
+</html>
