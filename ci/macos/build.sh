@@ -100,6 +100,19 @@ cp -fv "${REPO_ROOT}/desktop-apps/package/common/license/opensource/LICENSE.html
 
 # Build the app bundle (unsigned).
 cd "${MACOS_DIR}"
+CODE_SIGN_WRAPPER_DIR="$(mktemp -d)"
+trap 'rm -rf "${CODE_SIGN_WRAPPER_DIR}"' EXIT
+cat > "${CODE_SIGN_WRAPPER_DIR}/codesign" <<'EOF'
+#!/bin/sh
+if [ "${OO_SKIP_CODESIGN:-0}" = "1" ]; then
+  echo "Skipping explicit code signing for unsigned CI build"
+  exit 0
+fi
+exec /usr/bin/codesign "$@"
+EOF
+chmod +x "${CODE_SIGN_WRAPPER_DIR}/codesign"
+export OO_SKIP_CODESIGN=1
+export PATH="${CODE_SIGN_WRAPPER_DIR}:${PATH}"
 xcodebuild -project ONLYOFFICE.xcodeproj \
   -scheme "${SCHEME}" \
   -configuration Release \
