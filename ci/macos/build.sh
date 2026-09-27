@@ -12,6 +12,20 @@ set -euo pipefail
 PLATFORM="${1:-darwin_arm64}"
 SCHEME="${2:-ONLYOFFICE-arm}"
 
+# The CI matrix names Darwin architectures; build_tools expects its own platform IDs.
+case "${PLATFORM}" in
+  darwin_arm64|mac_arm64)
+    BUILD_TOOLS_PLATFORM="mac_arm64"
+    ;;
+  darwin_x86_64|mac_64)
+    BUILD_TOOLS_PLATFORM="mac_64"
+    ;;
+  *)
+    echo "unsupported macOS architecture: ${PLATFORM}" >&2
+    exit 2
+    ;;
+esac
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 BUILD_TOOLS="${REPO_ROOT}/build_tools"
@@ -50,7 +64,7 @@ echo "Qt dir: ${QT_DIR}"
 cd "${BUILD_TOOLS}"
 python3 ./configure.py \
   --branch master \
-  --platform "${PLATFORM}" \
+  --platform "${BUILD_TOOLS_PLATFORM}" \
   --module desktop \
   --qt-dir "${QT_DIR}" \
   --branding typsastra \
