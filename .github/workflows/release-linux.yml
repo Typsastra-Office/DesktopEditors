@@ -31,6 +31,7 @@ jobs:
           path: |
             build_tools/tools/linux/qt_build
             build_tools/tools/linux/sysroot
+            build_tools/tools/linux/cmake-*-linux-x86_64
             core/Common/3dParty
             build_tools/out
             sdkjs/build/node_modules
@@ -38,9 +39,9 @@ jobs:
             web-apps/build/sprites/node_modules
             desktop-apps/common/loginpage/build/node_modules
             ~/.npm
-          key: ${{ runner.os }}-release-v3-${{ hashFiles('.gitmodules', 'sdkjs/build/npm-shrinkwrap.json', 'web-apps/build/package-lock.json') }}
+          key: ${{ runner.os }}-release-v4-${{ hashFiles('.gitmodules', 'sdkjs/build/npm-shrinkwrap.json', 'web-apps/build/package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}-release-v3-
+            ${{ runner.os }}-release-v4-
 
       - name: Build
         run: bash ci/linux/build.sh
