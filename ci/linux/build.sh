@@ -61,16 +61,25 @@ fi
 # build_tools/build-onlyoffice-x64.sh.
 log "Pin CMake"
 CMAKE_VERSION="3.30.0"
-CMAKE_HOME="$(find "${LINUX_TOOLS}" -maxdepth 1 -type d -name "cmake-${CMAKE_VERSION}-linux-x86_64" | head -1 || true)"
-if [ -z "${CMAKE_HOME}" ] || [ ! -x "${CMAKE_HOME}/bin/cmake" ]; then
+CMAKE_DIR="cmake-${CMAKE_VERSION}-linux-x86_64"
+CMAKE_HOME="${LINUX_TOOLS}/${CMAKE_DIR}"
+if [ ! -x "${CMAKE_HOME}/bin/cmake" ]; then
+  # Remove a partial extraction from an interrupted earlier run, otherwise
+  # tar can fail or leave a tree without bin/cmake.
+  rm -rf "${CMAKE_HOME}"
   (cd "${LINUX_TOOLS}" \
-    && wget -q "https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-x86_64.tar.gz" \
-    && tar -xzf "cmake-${CMAKE_VERSION}-linux-x86_64.tar.gz" \
-    && rm -f "cmake-${CMAKE_VERSION}-linux-x86_64.tar.gz")
+    && wget -q "https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/${CMAKE_DIR}.tar.gz" \
+    && tar -xzf "${CMAKE_DIR}.tar.gz" \
+    && rm -f "${CMAKE_DIR}.tar.gz")
 fi
-[ -x "${CMAKE_HOME}/bin/cmake" ] || die "CMake ${CMAKE_VERSION} was not unpacked."
+[ -x "${CMAKE_HOME}/bin/cmake" ] || die "CMake ${CMAKE_VERSION} was not unpacked into ${CMAKE_HOME}."
 export PATH="${CMAKE_HOME}/bin:${PATH}"
+# Confirm the pin is the cmake the build will actually use.
 cmake --version | head -1
+case "$(command -v cmake)" in
+  "${CMAKE_HOME}"/*) ;;
+  *) die "cmake resolved to $(command -v cmake), expected the pinned ${CMAKE_HOME}/bin/cmake." ;;
+esac
 
 # update=0 - use the checkouts provided by the workflow, do not fetch/checkout
 # repositories from the network.

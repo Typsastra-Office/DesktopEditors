@@ -31,7 +31,7 @@ jobs:
           path: |
             build_tools/tools/linux/qt_build
             build_tools/tools/linux/sysroot
-            build_tools/tools/linux/cmake-*-linux-x86_64
+            build_tools/tools/linux/cmake-3.30.0-linux-x86_64
             core/Common/3dParty
             build_tools/out
             sdkjs/build/node_modules
@@ -44,7 +44,43 @@ jobs:
             ${{ runner.os }}-release-v4-
 
       - name: Build
-        run: bash ci/linux/build.sh
+        run: |
+          set -o pipefail
+          bash ci/linux/build.sh 2>&1 | tee ci-linux-build.log
+
+      # If the build fails there is no way to tell from the run summary alone
+      # which stage broke, and the workflow log is not retrievable without
+      # authentication. Stage the tail of the build output and the toolchain
+      # state so a failure is diagnosable from the artifacts.
+      - name: Collect build diagnostics
+        if: failure()
+        run: |
+          {
+            echo "### git state"
+            git log -1 --oneline || true
+            git submodule status || true
+            echo
+            echo "### toolchain"
+            echo "cmake: $(command -v cmake) $(cmake --version 2>/dev/null | head -1)"
+            echo "python: $(python3 --version 2>&1)"
+            echo "node:   $(node -v 2>&1)"
+            echo "gcc:    $(gcc --version 2>/dev/null | head -1)"
+            echo
+            echo "### last 200 lines of the build"
+            tail -n 200 ci-linux-build.log 2>/dev/null || echo "(no ci-linux-build.log)"
+          } | tee build-diagnostics.txt
+          tail -n 4000 ci-linux-build.log > ci-linux-build-tail.log 2>/dev/null || true
+
+      - name: Upload build diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-build-diagnostics
+          path: |
+            build-diagnostics.txt
+            ci-linux-build-tail.log
+          if-no-files-found: ignore
+          retention-days: 14
 
       - name: Package
         run: |
