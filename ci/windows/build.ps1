@@ -5,7 +5,7 @@ param (
     [string]$QtDir,
     [string]$VsPath,
     [string]$Version,
-    [string]$Build = "0"
+    [string]$Build
 )
 $ErrorActionPreference = "Stop"
 
@@ -31,8 +31,27 @@ if (-not $QtDir) {
     if ($env:QT_ROOT_DIR -and (Test-Path $env:QT_ROOT_DIR)) { $QtDir = (Get-Item $env:QT_ROOT_DIR).Parent.FullName }
     else { throw "QtDir is not set (expected QT_ROOT_DIR from install-qt-action)" }
 }
+# Release identity: like ci/linux/build.sh and ci/macos/build.sh, take it from
+# the branding repo so every platform produces the same <base>.<release>, rather
+# than this script hard-coding a build number. build_tools/make.py sets these in
+# its own process only, so the packaging step below has to pass them again.
+$brandingMake = "$repoRoot\typsastra\build_tools\make.py"
+function Get-BrandValue {
+    param([string]$Name)
+    $line = Select-String -Path $brandingMake -Pattern ('^' + $Name + '\s*=\s*"([^"]*)"') -ErrorAction SilentlyContinue |
+        Select-Object -First 1
+    if ($line) { return $line.Matches[0].Groups[1].Value }
+    return ""
+}
 if (-not $Version) {
-    $Version = (Get-Content "$buildTools\version" -Raw).Trim()
+    $Version = Get-BrandValue "BRAND_BASE_VERSION"
+    if (-not $Version) { $Version = (Get-Content "$buildTools\version" -Raw).Trim() }
+}
+if (-not $Build) {
+    $Build = Get-BrandValue "BRAND_RELEASE"
+    if (-not $Build) {
+        throw "BUILD_NUMBER is not set and BRAND_RELEASE was not found in $brandingMake"
+    }
 }
 
 Write-Host "QtDir   = $QtDir"
