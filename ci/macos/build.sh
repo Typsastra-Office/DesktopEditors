@@ -122,7 +122,7 @@ xcodebuild -project ONLYOFFICE.xcodeproj \
   CODE_SIGN_IDENTITY="" \
   build
 
-APP_PATH="build/Build/Products/Release/ONLYOFFICE.app"
+APP_PATH="build/Build/Products/Release/TypsastraOffice.app"
 if [ ! -d "${APP_PATH}" ]; then
   echo "app bundle was not produced: ${APP_PATH}" >&2
   exit 1
