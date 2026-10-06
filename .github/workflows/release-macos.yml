@@ -20,11 +20,14 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Apple Silicon
+          # Apple Silicon. Only this entry creates the draft release: the two
+          # jobs finish at about the same time, and letting both create it left
+          # GitHub with two drafts for one tag.
           - arch: arm64
             runner: macos-14
             platform: darwin_arm64
             scheme: TypsastraOffice-arm
+            create_release: true
           # Intel: GitHub's hosted Intel image (macos-13) no longer has runners,
           # so x86_64 is cross built on an Apple Silicon runner (Qt clang_64 is
           # universal and Rosetta runs the x86_64 build tools).
@@ -109,7 +112,17 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         env:
           GH_TOKEN: ${{ github.token }}
+          CREATE_RELEASE: ${{ matrix.create_release }}
         run: |
-          gh release create "${GITHUB_REF_NAME}" --draft --generate-notes 2>/dev/null || \
-            gh release view "${GITHUB_REF_NAME}"
+          if [ "${CREATE_RELEASE}" = "true" ]; then
+            gh release create "${GITHUB_REF_NAME}" --draft --generate-notes 2>/dev/null || \
+              gh release view "${GITHUB_REF_NAME}"
+          else
+            # Wait for the creating job; it builds in parallel, not before us.
+            for _ in $(seq 1 90); do
+              gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1 && break
+              sleep 10
+            done
+            gh release view "${GITHUB_REF_NAME}" >/dev/null
+          fi
           gh release upload "${GITHUB_REF_NAME}" desktop-apps/package/macos/*.zip --clobber
