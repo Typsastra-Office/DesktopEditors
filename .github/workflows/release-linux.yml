@@ -141,6 +141,11 @@ jobs:
             echo "::error::no .rpm was produced" >&2
             exit 1
           fi
+          RELEASE_VERSION="${PRODUCT_VERSION}.${BUILD_NUMBER}"
+          DEB_FILE=(deb/*.deb)
+          RPM_FILE=(rpm/build/RPMS/*/*.rpm)
+          mv "${DEB_FILE[0]}" "deb/Typsastra-Office-${RELEASE_VERSION}-Linux-x64.deb"
+          mv "${RPM_FILE[0]}" "$(dirname "${RPM_FILE[0]}")/Typsastra-Office-${RELEASE_VERSION}-Linux-x64.rpm"
           ls -lh deb/*.deb rpm/build/RPMS/*/*.rpm
 
       # If the build fails there is no way to tell from the run summary alone
@@ -185,15 +190,21 @@ jobs:
 
       - name: Package tarball
         run: |
+          PRODUCT_VERSION="$(sed -n 's/^BRAND_BASE_VERSION *= *"\(.*\)"/\1/p' typsastra/build_tools/make.py)"
+          BUILD_NUMBER="$(sed -n 's/^BRAND_RELEASE *= *"\(.*\)"/\1/p' typsastra/build_tools/make.py)"
+          if [ -z "${PRODUCT_VERSION}" ] || [ -z "${BUILD_NUMBER}" ]; then
+            echo "::error::could not read the branding version from typsastra/build_tools/make.py" >&2
+            exit 1
+          fi
           cd build_tools/out/linux_64/typsastra
-          tar -czf "${GITHUB_WORKSPACE}/desktopeditors-linux-x64.tar.gz" desktopeditors
+          tar -czf "${GITHUB_WORKSPACE}/Typsastra-Office-${PRODUCT_VERSION}.${BUILD_NUMBER}-Linux-x64.tar.gz" desktopeditors
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: desktopeditors-linux-x64
+          name: typsastra-office-linux-x64
           path: |
-            desktopeditors-linux-x64.tar.gz
+            Typsastra-Office-*.tar.gz
             desktop-apps/package/deb/*.deb
             desktop-apps/package/rpm/build/RPMS/*/*.rpm
           if-no-files-found: error
@@ -209,7 +220,7 @@ jobs:
           gh release create "${GITHUB_REF_NAME}" --draft --generate-notes 2>/dev/null || \
             gh release view "${GITHUB_REF_NAME}"
           gh release upload "${GITHUB_REF_NAME}" \
-            desktopeditors-linux-x64.tar.gz \
-            desktop-apps/package/deb/*.deb \
-            desktop-apps/package/rpm/build/RPMS/*/*.rpm \
+            Typsastra-Office-*.tar.gz \
+            desktop-apps/package/deb/Typsastra-Office-*.deb \
+            desktop-apps/package/rpm/build/RPMS/*/Typsastra-Office-*.rpm \
             --clobber

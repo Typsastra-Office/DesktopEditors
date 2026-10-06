@@ -68,10 +68,10 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: desktopeditors-windows-x64
+          name: typsastra-office-windows-x64
           path: |
-            desktop-apps/package/zip/*.zip
-            desktop-apps/package/inno/Typsastra-*.exe
+            desktop-apps/package/zip/Typsastra-Office-*.zip
+            desktop-apps/package/inno/Typsastra-Office-*.exe
           if-no-files-found: error
 
       # A draft gives a chance to check the artifact set before it is visible.
@@ -85,4 +85,4 @@ jobs:
         run: |
           gh release create "${env:GITHUB_REF_NAME}" --draft --generate-notes 2>$null
           if ($LASTEXITCODE -ne 0) { gh release view "${env:GITHUB_REF_NAME}" }
-          gh release upload "${env:GITHUB_REF_NAME}" desktop-apps/package/zip/*.zip desktop-apps/package/inno/Typsastra-*.exe --clobber
+          gh release upload "${env:GITHUB_REF_NAME}" desktop-apps/package/zip/Typsastra-Office-*.zip desktop-apps/package/inno/Typsastra-Office-*.exe --clobber

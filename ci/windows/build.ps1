@@ -114,6 +114,18 @@ $pkgExit = $LASTEXITCODE
 Pop-Location
 if ($pkgExit -ne 0) { throw "make_package.py failed ($pkgExit)" }
 
+# Normalize the release asset names and make the platform explicit.
+$releaseVersion = "$Version.$Build"
+$zipDir = "$repoRoot\desktop-apps\package\zip"
+$innoDir = "$repoRoot\desktop-apps\package\inno"
+$zipFiles = @(Get-ChildItem "$zipDir\Typsastra-*.zip" -ErrorAction SilentlyContinue)
+$exeFiles = @(Get-ChildItem "$innoDir\Typsastra-*.exe" -ErrorAction SilentlyContinue)
+if ($zipFiles.Count -ne 1 -or $exeFiles.Count -ne 1) {
+    throw "Expected one Typsastra zip and installer; found $($zipFiles.Count) zip(s), $($exeFiles.Count) installer(s)"
+}
+Rename-Item -LiteralPath $zipFiles[0].FullName -NewName "Typsastra-Office-$releaseVersion-Windows-x64.zip"
+Rename-Item -LiteralPath $exeFiles[0].FullName -NewName "Typsastra-Office-$releaseVersion-Windows-x64.exe"
+
 Write-Host "Artifacts:"
-Get-ChildItem "$repoRoot\desktop-apps\package\zip\*.zip", "$repoRoot\desktop-apps\package\inno\*.exe" -ErrorAction SilentlyContinue |
+Get-ChildItem "$repoRoot\desktop-apps\package\zip\Typsastra-Office-*.zip", "$repoRoot\desktop-apps\package\inno\Typsastra-Office-*.exe" -ErrorAction SilentlyContinue |
     ForEach-Object { Write-Host "  $($_.FullName)" }

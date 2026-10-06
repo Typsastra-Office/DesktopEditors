@@ -101,7 +101,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: desktopeditors-macos-${{ matrix.arch }}
+          name: typsastra-office-macos-${{ matrix.arch }}
           path: desktop-apps/package/macos/*.zip
           if-no-files-found: error
 

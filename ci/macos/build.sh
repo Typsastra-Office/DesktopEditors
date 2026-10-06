@@ -129,7 +129,11 @@ if [ ! -d "${APP_PATH}" ]; then
 fi
 
 mkdir -p "${OUT_DIR}"
-ZIP="${OUT_DIR}/${SCHEME}-${APP_VERSION}.zip"
+case "${PLATFORM}" in
+  darwin_arm64|mac_arm64) RELEASE_ARCH="arm64" ;;
+  darwin_x86_64|mac_64) RELEASE_ARCH="x64" ;;
+esac
+ZIP="${OUT_DIR}/Typsastra-Office-${APP_VERSION}-macOS-${RELEASE_ARCH}.zip"
 rm -f "${ZIP}"
 ditto -c -k --sequesterRsrc --keepParent "${APP_PATH}" "${ZIP}"
 
