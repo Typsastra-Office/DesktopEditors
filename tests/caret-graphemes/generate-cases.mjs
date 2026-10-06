@@ -179,7 +179,8 @@ const doc = {
 
 // Keep numeric arrays on one line. Pretty-printing them one element per line
 // turns the fixture into twenty thousand lines that nobody will review.
-const inline = (a) => "[" + a.map((x) => (Array.isArray(x) ? inline(x) : String(x))).join(", ") + "]";
+const inline = (a) =>
+	"[" + a.map((x) => (Array.isArray(x) ? inline(x) : JSON.stringify(x))).join(", ") + "]";
 const out = [];
 out.push("{");
 out.push(`\t"description": ${JSON.stringify(doc.description)},`);
