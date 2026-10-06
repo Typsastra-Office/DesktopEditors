@@ -155,11 +155,31 @@ done
 # The package must stay runnable on the oldest supported Ubuntu. The floor is
 # set by CEF and the sysroot-built core, not by the machine that built it, so
 # this catches a future change that re-introduces a host dependency.
+#
+# The offending libraries are named when the floor is breached. Reporting only
+# the version gives no way to tell which step leaked the host's glibc
+# requirement: the usual cause is a library copied out of the build host instead
+# of being taken from the sysroot, which raises the floor on newer runner images
+# while still building cleanly on an older one.
 MAX_GLIBC="${MAX_GLIBC:-2.17}"
-actual_vers="$(find "${APP_DIR}" -name '*.so*' -type f -exec objdump -T {} + 2>/dev/null \
-  | grep -oE 'GLIBC_[0-9]+\.[0-9]+' | sort -V -u | tail -1 | cut -d_ -f2)"
+glibc_per_lib="$(
+  find -L "${APP_DIR}" -name '*.so*' -type f | sort | while IFS= read -r lib; do
+    highest="$(objdump -T "${lib}" 2>/dev/null | grep -oE 'GLIBC_[0-9]+\.[0-9]+' \
+      | cut -d_ -f2 | sort -V -u | tail -1)"
+    [ -n "${highest}" ] && printf '%s\t%s\n' "${highest}" "${lib#"${APP_DIR}"/}"
+  done
+)"
+actual_vers="$(printf '%s\n' "${glibc_per_lib}" | awk 'NF' | cut -f1 | sort -V -u | tail -1)"
 echo "Highest required GLIBC symbol: ${actual_vers:-none} (limit ${MAX_GLIBC})"
 if [ -n "${actual_vers}" ] && [ "$(printf '%s\n%s\n' "${MAX_GLIBC}" "${actual_vers}" | sort -V | tail -1)" != "${MAX_GLIBC}" ]; then
+  {
+    echo "Bundled libraries needing a newer GLIBC than ${MAX_GLIBC}:"
+    printf '%s\n' "${glibc_per_lib}" | awk -F'\t' -v max="${actual_vers}" \
+      'NF && $1 == max { print "  " $2 " (GLIBC_" $1 ")" }'
+    echo
+    echo "A library that is out of line with the rest of the bundle was probably"
+    echo "copied from the build host rather than taken from the sysroot."
+  } >&2
   die "The bundle needs GLIBC ${actual_vers}, above the supported ${MAX_GLIBC}. This makes the package non-portable."
 fi
 
