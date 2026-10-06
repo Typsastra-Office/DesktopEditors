@@ -19,12 +19,61 @@ jobs:
     timeout-minutes: 360
 
     steps:
+      # The standard ubuntu-24.04 runner only guarantees ~14 GB of free disk
+      # (GitHub's documented floor). This build writes ~24 GB of objects and
+      # third-party trees plus a 2.2 GB bundle, so a cold run does not fit and
+      # fails late with an unhelpful "No space left on device". Reclaim the
+      # toolchains this build never uses, before the workspace is populated.
+      #
+      # Everything removed here is unrelated to a C++/Qt build. Deliberately
+      # kept: /usr/local/lib/node_modules and the image's system Node, Python,
+      # git, curl and the apt lists (deps.py installs and resolves against them).
+      - name: Reclaim disk space
+        run: |
+          set -o pipefail
+          echo "Before: $(df -h --output=source,size,used,avail,pcent,target / | tail -1)"
+          sudo rm -rf \
+            /usr/local/lib/android \
+            /opt/ghc \
+            /usr/local/.ghcup \
+            /usr/share/swift \
+            /usr/local/share/boost \
+            /usr/share/dotnet \
+            /opt/powershell \
+            /usr/local/share/powershell \
+            /usr/share/az \
+            /usr/local/share/gem \
+            /usr/lib/mono \
+            /usr/lib/golang \
+            /opt/service
+          sudo apt-get clean
+          sudo rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*.deb
+          echo "After:  $(df -h --output=source,size,used,avail,pcent,target / | tail -1)"
+
+      # Fail here, in seconds, rather than 90 minutes into the build if the
+      # reclaim above is not enough. At that point the only remaining option is
+      # a larger runner, so say so explicitly.
+      - name: Check free disk space
+        env:
+          REQUIRED_GB: 32
+        run: |
+          free_gb=$(df --output=avail -BG / | tail -1 | tr -dc '0-9')
+          echo "Free space before building: ${free_gb} GB (need at least ${REQUIRED_GB} GB)"
+          if [ "${free_gb}" -lt "${REQUIRED_GB}" ]; then
+            echo "::error::Only ${free_gb} GB free on / after reclaiming runner toolchains; this build needs about ${REQUIRED_GB} GB. Switch this job to a larger runner." >&2
+            exit 1
+          fi
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: recursive
           fetch-depth: 0
 
+      # core/Common/3dParty is deliberately NOT cached: at ~22 GB (mostly V8) it
+      # is more than twice the 10 GB per-repository cache quota, so the save
+      # could never succeed, and restoring it would consume the disk the build
+      # needs. Only the small, reusable toolchain pieces are cached.
       - name: Cache build data
         uses: actions/cache@v4
         with:
@@ -32,7 +81,6 @@ jobs:
             build_tools/tools/linux/qt_build
             build_tools/tools/linux/sysroot
             build_tools/tools/linux/cmake-3.30.0-linux-x86_64
-            core/Common/3dParty
             build_tools/out
             sdkjs/build/node_modules
             web-apps/build/node_modules
@@ -65,6 +113,11 @@ jobs:
             echo "python: $(python3 --version 2>&1)"
             echo "node:   $(node -v 2>&1)"
             echo "gcc:    $(gcc --version 2>/dev/null | head -1)"
+            echo
+            echo "### disk"
+            df -h / "${GITHUB_WORKSPACE}" 2>/dev/null || df -h /
+            echo "largest consumers under the workspace:"
+            du -sh "${GITHUB_WORKSPACE}"/* 2>/dev/null | sort -rh | head -10
             echo
             echo "### last 200 lines of the build"
             tail -n 200 ci-linux-build.log 2>/dev/null || echo "(no ci-linux-build.log)"
