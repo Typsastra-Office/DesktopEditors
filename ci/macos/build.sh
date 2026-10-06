@@ -2,8 +2,8 @@
 # Build Typsastra Office for macOS (arm64 or x86_64) as an unsigned .app.
 #
 # Used by .github/workflows/release-macos.yml, can also run locally on macOS:
-#   bash ci/macos/build.sh darwin_arm64 ONLYOFFICE-arm
-#   bash ci/macos/build.sh darwin_x86_64 ONLYOFFICE-x86_64
+#   bash ci/macos/build.sh darwin_arm64 TypsastraOffice-arm
+#   bash ci/macos/build.sh darwin_x86_64 TypsastraOffice-x86_64
 #
 # The release lanes (fastlane, desktop-apps/macos) sign and notarize with the
 # Developer ID; this script only produces a test/shippable-unsigned artifact.
@@ -13,7 +13,7 @@ set -euo pipefail
 export QMAKE_BUILD_JOBS="${QMAKE_BUILD_JOBS:-2}"
 
 PLATFORM="${1:-darwin_arm64}"
-SCHEME="${2:-ONLYOFFICE-arm}"
+SCHEME="${2:-TypsastraOffice-arm}"
 
 # The CI matrix names Darwin architectures; build_tools expects its own platform IDs.
 case "${PLATFORM}" in
@@ -129,7 +129,7 @@ if [ ! -d "${APP_PATH}" ]; then
 fi
 
 mkdir -p "${OUT_DIR}"
-ZIP="${OUT_DIR}/TypsastraOffice-${SCHEME}-${APP_VERSION}.zip"
+ZIP="${OUT_DIR}/${SCHEME}-${APP_VERSION}.zip"
 rm -f "${ZIP}"
 ditto -c -k --sequesterRsrc --keepParent "${APP_PATH}" "${ZIP}"
 
