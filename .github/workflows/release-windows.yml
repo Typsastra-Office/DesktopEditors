@@ -74,12 +74,15 @@ jobs:
             desktop-apps/package/inno/Typsastra-*.exe
           if-no-files-found: error
 
-      - name: Publish release assets
+      # A draft gives a chance to check the artifact set before it is visible.
+      # Running the workflow from a tag makes GITHUB_REF_NAME the tag; the tag
+      # can be moved and the run repeated.
+      - name: Publish draft release assets
         if: startsWith(github.ref, 'refs/tags/')
         shell: powershell
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view "${env:GITHUB_REF_NAME}" 2>$null
-          if ($LASTEXITCODE -ne 0) { gh release create "${env:GITHUB_REF_NAME}" --generate-notes }
+          gh release create "${env:GITHUB_REF_NAME}" --draft --generate-notes 2>$null
+          if ($LASTEXITCODE -ne 0) { gh release view "${env:GITHUB_REF_NAME}" }
           gh release upload "${env:GITHUB_REF_NAME}" desktop-apps/package/zip/*.zip desktop-apps/package/inno/Typsastra-*.exe --clobber

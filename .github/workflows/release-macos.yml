@@ -102,10 +102,14 @@ jobs:
           path: desktop-apps/package/macos/*.zip
           if-no-files-found: error
 
-      - name: Publish release assets
+      # A draft gives a chance to check the artifact set before it is visible.
+      # Running the workflow from a tag makes GITHUB_REF_NAME the tag; the tag
+      # can be moved and the run repeated.
+      - name: Publish draft release assets
         if: startsWith(github.ref, 'refs/tags/')
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1 || gh release create "${GITHUB_REF_NAME}" --generate-notes
+          gh release create "${GITHUB_REF_NAME}" --draft --generate-notes 2>/dev/null || \
+            gh release view "${GITHUB_REF_NAME}"
           gh release upload "${GITHUB_REF_NAME}" desktop-apps/package/macos/*.zip --clobber

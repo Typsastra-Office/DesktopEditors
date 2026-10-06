@@ -53,9 +53,13 @@ jobs:
       # Fail here, in seconds, rather than 90 minutes into the build if the
       # reclaim above is not enough. At that point the only remaining option is
       # a larger runner, so say so explicitly.
+      #
+      # The floor covers the build plus packaging. Packaging stages its own copy
+      # of the ~2.2 GB payload for each format (deb and rpm buildroots are
+      # separate), so it needs several GB past the build itself.
       - name: Check free disk space
         env:
-          REQUIRED_GB: 32
+          REQUIRED_GB: 40
         run: |
           free_gb=$(df --output=avail -BG / | tail -1 | tr -dc '0-9')
           echo "Free space before building: ${free_gb} GB (need at least ${REQUIRED_GB} GB)"
@@ -96,6 +100,49 @@ jobs:
           set -o pipefail
           bash ci/linux/build.sh 2>&1 | tee ci-linux-build.log
 
+      # build_tools/make_package.py -T desktop is the usual entry point, but on
+      # Linux it builds both the opensource and commercial editions and all four
+      # formats in one go, which this runner does not have room for. Drive the
+      # same branding-aware Makefile directly and start with deb and rpm.
+      #
+      # The Makefile takes the payload from build_tools/out/linux_64/typsastra
+      # and applies typsastra/desktop-apps/package/branding.mk, so the packages
+      # are named typsastra-office. rpm-suse is not built here: it needs SUSE
+      # macros a Ubuntu runner does not provide.
+      - name: Package deb and rpm
+        run: |
+          set -o pipefail
+          sudo apt-get install -y --no-install-recommends \
+            debhelper dpkg-dev fakeroot rpm
+
+          # Same source of truth as ci/macos/build.sh: the branding repo owns
+          # the release number (upstream base + Typsastra release).
+          PRODUCT_VERSION="$(sed -n 's/^BRAND_BASE_VERSION *= *"\(.*\)"/\1/p' typsastra/build_tools/make.py)"
+          BUILD_NUMBER="$(sed -n 's/^BRAND_RELEASE *= *"\(.*\)"/\1/p' typsastra/build_tools/make.py)"
+          if [ -z "${PRODUCT_VERSION}" ] || [ -z "${BUILD_NUMBER}" ]; then
+            echo "::error::could not read the branding version from typsastra/build_tools/make.py" >&2
+            exit 1
+          fi
+          echo "packaging ${PRODUCT_VERSION}-${BUILD_NUMBER}"
+
+          cd desktop-apps/package
+          make clean
+          make deb rpm \
+            BRANDING_DIR=../../typsastra/desktop-apps/package \
+            PRODUCT_VERSION="${PRODUCT_VERSION}" \
+            BUILD_NUMBER="${BUILD_NUMBER}" \
+            2>&1 | tee ../../ci-linux-package.log
+
+          if ! compgen -G "deb/*.deb" > /dev/null; then
+            echo "::error::no .deb was produced" >&2
+            exit 1
+          fi
+          if ! compgen -G "rpm/build/RPMS/*/*.rpm" > /dev/null; then
+            echo "::error::no .rpm was produced" >&2
+            exit 1
+          fi
+          ls -lh deb/*.deb rpm/build/RPMS/*/*.rpm
+
       # If the build fails there is no way to tell from the run summary alone
       # which stage broke, and the workflow log is not retrievable without
       # authentication. Stage the tail of the build output and the toolchain
@@ -132,10 +179,11 @@ jobs:
           path: |
             build-diagnostics.txt
             ci-linux-build-tail.log
+            ci-linux-package.log
           if-no-files-found: ignore
           retention-days: 14
 
-      - name: Package
+      - name: Package tarball
         run: |
           cd build_tools/out/linux_64/typsastra
           tar -czf "${GITHUB_WORKSPACE}/desktopeditors-linux-x64.tar.gz" desktopeditors
@@ -144,13 +192,24 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: desktopeditors-linux-x64
-          path: desktopeditors-linux-x64.tar.gz
+          path: |
+            desktopeditors-linux-x64.tar.gz
+            desktop-apps/package/deb/*.deb
+            desktop-apps/package/rpm/build/RPMS/*/*.rpm
           if-no-files-found: error
 
-      - name: Publish release assets
+      # A draft gives a chance to check the artifact set before it is visible.
+      # Running the workflow from a tag makes GITHUB_REF_NAME the tag; the tag
+      # can be moved and the run repeated.
+      - name: Publish draft release assets
         if: startsWith(github.ref, 'refs/tags/')
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1 || gh release create "${GITHUB_REF_NAME}" --generate-notes
-          gh release upload "${GITHUB_REF_NAME}" desktopeditors-linux-x64.tar.gz --clobber
+          gh release create "${GITHUB_REF_NAME}" --draft --generate-notes 2>/dev/null || \
+            gh release view "${GITHUB_REF_NAME}"
+          gh release upload "${GITHUB_REF_NAME}" \
+            desktopeditors-linux-x64.tar.gz \
+            desktop-apps/package/deb/*.deb \
+            desktop-apps/package/rpm/build/RPMS/*/*.rpm \
+            --clobber
