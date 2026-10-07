@@ -129,6 +129,7 @@ jobs:
           make clean
           make deb rpm \
             BRANDING_DIR=../../typsastra/desktop-apps/package \
+            CC_LICENSE_FILE=common/license/opensource/LICENSE-CC.txt \
             PRODUCT_VERSION="${PRODUCT_VERSION}" \
             BUILD_NUMBER="${BUILD_NUMBER}" \
             2>&1 | tee ../../ci-linux-package.log
