@@ -20,14 +20,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Apple Silicon. Only this entry creates the draft release: the two
-          # jobs finish at about the same time, and letting both create it left
-          # GitHub with two drafts for one tag.
+          # Apple Silicon.
           - arch: arm64
             runner: macos-14
             platform: darwin_arm64
             scheme: TypsastraOffice-arm
-            create_release: true
           # Intel: GitHub's hosted Intel image (macos-13) no longer has runners,
           # so x86_64 is cross built on an Apple Silicon runner (Qt clang_64 is
           # universal and Rosetta runs the x86_64 build tools).
@@ -105,24 +102,29 @@ jobs:
           path: desktop-apps/package/macos/*.zip
           if-no-files-found: error
 
-      # A draft gives a chance to check the artifact set before it is visible.
-      # Running the workflow from a tag makes GITHUB_REF_NAME the tag; the tag
-      # can be moved and the run repeated.
-      - name: Publish draft release assets
+      # release-init.yml is the only workflow that creates releases. Wait for
+      # it before uploading so platform workflows cannot race each other.
+      - name: Wait for release initialization
         if: startsWith(github.ref, 'refs/tags/')
         env:
           GH_TOKEN: ${{ github.token }}
-          CREATE_RELEASE: ${{ matrix.create_release }}
         run: |
-          if [ "${CREATE_RELEASE}" = "true" ]; then
-            gh release create "${GITHUB_REF_NAME}" --draft --generate-notes 2>/dev/null || \
-              gh release view "${GITHUB_REF_NAME}"
-          else
-            # Wait for the creating job; it builds in parallel, not before us.
-            for _ in $(seq 1 90); do
-              gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1 && break
-              sleep 10
-            done
-            gh release view "${GITHUB_REF_NAME}" >/dev/null
+          ready=false
+          for _ in $(seq 1 120); do
+            if gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1; then
+              ready=true
+              break
+            fi
+            sleep 10
+          done
+          if [ "${ready}" != true ]; then
+            echo "::error::release initialization did not create ${GITHUB_REF_NAME} within 20 minutes" >&2
+            exit 1
           fi
+
+      - name: Publish release assets
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
           gh release upload "${GITHUB_REF_NAME}" desktop-apps/package/macos/*.zip --clobber

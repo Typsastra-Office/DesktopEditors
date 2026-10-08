@@ -74,15 +74,26 @@ jobs:
             desktop-apps/package/inno/Typsastra-Office-*.exe
           if-no-files-found: error
 
-      # A draft gives a chance to check the artifact set before it is visible.
-      # Running the workflow from a tag makes GITHUB_REF_NAME the tag; the tag
-      # can be moved and the run repeated.
-      - name: Publish draft release assets
+      # release-init.yml is the only workflow that creates releases. Wait for
+      # it before uploading so platform workflows cannot race each other.
+      - name: Wait for release initialization
         if: startsWith(github.ref, 'refs/tags/')
         shell: powershell
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "${env:GITHUB_REF_NAME}" --draft --generate-notes 2>$null
-          if ($LASTEXITCODE -ne 0) { gh release view "${env:GITHUB_REF_NAME}" }
+          $ready = $false
+          for ($attempt = 0; $attempt -lt 120; $attempt++) {
+            gh release view "${env:GITHUB_REF_NAME}" *> $null
+            if ($LASTEXITCODE -eq 0) { $ready = $true; break }
+            Start-Sleep -Seconds 10
+          }
+          if (-not $ready) { throw "Release initialization did not create $env:GITHUB_REF_NAME within 20 minutes" }
+
+      - name: Publish release assets
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
           gh release upload "${env:GITHUB_REF_NAME}" desktop-apps/package/zip/Typsastra-Office-*.zip desktop-apps/package/inno/Typsastra-Office-*.exe --clobber

@@ -1,0 +1,28 @@
+name: Prepare draft release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+concurrency:
+  group: release-init-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  prepare-release:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Create the release once
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1; then
+            echo "Release ${GITHUB_REF_NAME} already exists; platform builds will replace their assets."
+          else
+            gh release create "${GITHUB_REF_NAME}" --draft --generate-notes
+          fi
