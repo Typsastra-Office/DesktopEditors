@@ -1,6 +1,12 @@
 name: Prepare draft release
 
 on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Tag to initialize (defaults to the selected ref)
+        required: false
+        type: string
   push:
     tags:
       - 'v*'
@@ -20,9 +26,10 @@ jobs:
       - name: Create the release once
         env:
           GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.release_tag || github.ref_name }}
         run: |
-          if gh release view "${GITHUB_REF_NAME}" --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1; then
-            echo "Release ${GITHUB_REF_NAME} already exists; platform builds will replace their assets."
+          if gh release view "${RELEASE_TAG}" --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1; then
+            echo "Release ${RELEASE_TAG} already exists; platform builds will replace their assets."
           else
-            gh release create "${GITHUB_REF_NAME}" --repo "${GITHUB_REPOSITORY}" --draft --generate-notes
+            gh release create "${RELEASE_TAG}" --repo "${GITHUB_REPOSITORY}" --draft --generate-notes
           fi
