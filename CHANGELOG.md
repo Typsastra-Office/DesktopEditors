@@ -2,22 +2,24 @@
 
 ## 10.0.0.1
 
-### Typsastra Office initial release
+### Initial release
 
 #### All Editors
 
-* Introduced Typsastra Office branding, with Khmer as the default interface language
+* Added dedicated product branding and set Khmer as the default interface language
 * Improved Khmer text shaping, font fallback, IME input, and caret behavior
 * Added Khmer spell-check defaults and Khmer-localized document styles
 
 #### Document Editor
 
-* Added Khmer consonant list numbering (`ក.`, `ខ.`, `គ.`) and mixed Khmer numeral/consonant multilevel formats
+* Added Khmer consonant list numbering (`ក.`, `ខ.`, `គ.`) and mixed Khmer
+  numeral/consonant multilevel formats
 * Added script-aware font configuration for Khmer text
 
 #### Spreadsheet Editor
 
-* Added Khmer numeral support for list numbering and normalized Unicode numerals during cell input
+* Added Khmer numeral list numbering and normalized Unicode digits during cell
+  input
 
 ## 9.4.0
 
